@@ -21,7 +21,7 @@ const axios = require('axios');
 //         console.log(error);
 //     })
 
-//URA carpark API call
+//URA carpark API call for all carparks
 axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_Details', {
     headers: {
         AccessKey: 'bafa6ff4-883d-4db0-9a12-494053267254',
@@ -29,7 +29,7 @@ axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_De
     }
     })
     .then(response => {
-        console.log(response);
+        console.log(response.data.Result);
     })
     .catch(error => {
         console.log(error);
