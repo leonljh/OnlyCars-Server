@@ -24,7 +24,7 @@ function init(){
 axios.get('https://data.gov.sg/api/action/datastore_search?resource_id=139a3035-e624-4f56-b63f-89ae28d4ae4c')
     .then(response => {
         //console.log(response.data.result.records);
-        //car park no. | address | x-coord | y-coord |  free_parking | 
+        //carpark_no | address | x-coord | y-coord |  free_parking | 
     })
     .catch(error => {
         console.log(error);
@@ -36,8 +36,8 @@ axios.get('https://api.data.gov.sg/v1/transport/carpark-availability')
         for(var i = 0; i < response.data.items[0].carpark_data.length; i++){
             //console.log(response.data.items[0].carpark_data[i].carpark_info);
         }
-        // carpark_no | carpark_info | lots available
-        // carpark_data | carpark_data[0].lots_available | carpark_data[0].lot_type
+        // match based on carpark_no primary key
+        // carpark_no (key) | carpark_info | lots available
     })
     .catch(error => {
         console.log(error);
@@ -61,6 +61,7 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
         })
     })
     .then( response => {
+        // carpark_no | address | x-coordinates | y-coordinates 
         console.log(response.data.Result[0]);
         //get list and rates
         return axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_Details', {
