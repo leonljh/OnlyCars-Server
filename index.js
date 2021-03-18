@@ -15,16 +15,45 @@ con.connect((err) => {
         console.log("Error connecting to DB");
         return;
     }
-    console.log("Connection Established");
+    console.log("Database Connection Established");
 })
 
+/*Create Table using this query in the GUI, otherwise just put this in a query
+
+CREATE TABLE parkinglots (
+	CarparkID varchar(255),
+    Address   varchar(255),
+    xcoord	  float,
+    ycoord	  float
+    )
+*/
 
 function init(){
 //this is to get carpark details (carparkID, longitude, latitude)
 axios.get('https://data.gov.sg/api/action/datastore_search?resource_id=139a3035-e624-4f56-b63f-89ae28d4ae4c')
     .then(response => {
-        //console.log(response.data.result.records);
-        //carpark_no | address | x-coord | y-coord |  free_parking | 
+        //console.log(response.data.result.records[1]);
+        var arrayOfCarparks = response.data.result.records;
+        for(var i = 0; i < arrayOfCarparks.length; i++){
+
+            let id = arrayOfCarparks[i].car_park_no;
+            let address = arrayOfCarparks[i].address;
+            let xCoord = arrayOfCarparks[i].x_coord;
+            let yCoord = arrayOfCarparks[i].y_coord;
+            //console.log(id + " " + address + " " + xCoord + " " + yCoord + " ");
+
+            //create database update using INSERT INTO 
+            var sqlUpdateTable = 
+            `INSERT INTO parkinglots (CarparkID, Address, xcoord, ycoord) VALUES (${id}, ${address}, ${xCoord}, ${yCoord})`;
+            //console.log(sqlUpdateTable);
+            con.query(sqlUpdateTable, function (err,result) {
+                if(err) throw err;
+                console.log("Number of Records added: " + result.affectedRows);
+            })
+        }
+
+        //carpark_no | address | x-coord | y-coord
+        var populateTableHDB = "INSERT INTO"
     })
     .catch(error => {
         console.log(error);
@@ -36,8 +65,7 @@ axios.get('https://api.data.gov.sg/v1/transport/carpark-availability')
         for(var i = 0; i < response.data.items[0].carpark_data.length; i++){
             //console.log(response.data.items[0].carpark_data[i].carpark_info);
         }
-        // match based on carpark_no primary key
-        // carpark_no (key) | carpark_info | lots available
+        // carpark_no (key) | carpark_info.total_lots | carpark_info.lots_available
     })
     .catch(error => {
         console.log(error);
@@ -62,7 +90,7 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
     })
     .then( response => {
         // carpark_no | address | x-coordinates | y-coordinates 
-        console.log(response.data.Result[0]);
+        //console.log(response.data.Result[0]);
         //get list and rates
         return axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_Details', {
             headers: {
@@ -72,7 +100,7 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
         })
     })
     .then(response => {
-        console.log(response.data.Result[0]);
+        //console.log(response.data.Result[0]);
     })
     .catch(error => {
         console.log(error);
@@ -85,5 +113,5 @@ carparkId | carpark address | lat | long | total lots |available lots left
 
 
 
-//init();
+init();
 
