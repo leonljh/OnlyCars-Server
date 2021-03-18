@@ -44,16 +44,19 @@ axios.get('https://data.gov.sg/api/action/datastore_search?resource_id=139a3035-
 
             //create database update using INSERT INTO 
             var sqlUpdateTable = 
-            `INSERT INTO parkinglots (CarparkID, Address, xcoord, ycoord) VALUES (${id}, ${address}, ${xCoord}, ${yCoord})`;
+            `INSERT INTO parkinglots (CarparkID, Address, xcoord, ycoord) VALUES ( '${id}', '${address}', '${xCoord}', '${yCoord}')`;
             //console.log(sqlUpdateTable);
+            con.query("USE mydb", function (err,result) {
+                if(err) throw err;
+                console.log("Using mydb");
+            })
             con.query(sqlUpdateTable, function (err,result) {
                 if(err) throw err;
-                console.log("Number of Records added: " + result.affectedRows);
+                console.log("Record Inserted!");
             })
         }
 
         //carpark_no | address | x-coord | y-coord
-        var populateTableHDB = "INSERT INTO"
     })
     .catch(error => {
         console.log(error);
