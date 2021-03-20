@@ -26,48 +26,56 @@ CREATE TABLE parkinglots (
     xcoord	  float,
     ycoord	  float
     )
+
 */
 
 function init(){
+    
 //this is to get carpark details (carparkID, longitude, latitude)
-axios.get('https://data.gov.sg/api/action/datastore_search?resource_id=139a3035-e624-4f56-b63f-89ae28d4ae4c')
-    .then(response => {
-        //console.log(response.data.result.records[1]);
-        var arrayOfCarparks = response.data.result.records;
-        for(var i = 0; i < arrayOfCarparks.length; i++){
+// axios.get('https://data.gov.sg/api/action/datastore_search?resource_id=139a3035-e624-4f56-b63f-89ae28d4ae4c')
+//     .then(response => {
+//         //console.log(response.data.result.records[1]);
+//         var arrayOfCarparks = response.data.result.records;
+//         for(var i = 0; i < arrayOfCarparks.length; i++){
 
-            let id = arrayOfCarparks[i].car_park_no;
-            let address = arrayOfCarparks[i].address;
-            let xCoord = arrayOfCarparks[i].x_coord;
-            let yCoord = arrayOfCarparks[i].y_coord;
-            //console.log(id + " " + address + " " + xCoord + " " + yCoord + " ");
+//             let id = arrayOfCarparks[i].car_park_no;
+//             let address = arrayOfCarparks[i].address;
+//             let xCoord = arrayOfCarparks[i].x_coord;
+//             let yCoord = arrayOfCarparks[i].y_coord;
+//             //console.log(id + " " + address + " " + xCoord + " " + yCoord + " ");
 
-            //create database update using INSERT INTO 
-            var sqlUpdateTable = 
-            `INSERT INTO parkinglots (CarparkID, Address, xcoord, ycoord) VALUES ( '${id}', '${address}', '${xCoord}', '${yCoord}')`;
-            //console.log(sqlUpdateTable);
-            con.query("USE mydb", function (err,result) {
-                if(err) throw err;
-                console.log("Using mydb");
-            })
-            con.query(sqlUpdateTable, function (err,result) {
-                if(err) throw err;
-                console.log("Record Inserted!");
-            })
-        }
-
-        //carpark_no | address | x-coord | y-coord
-    })
-    .catch(error => {
-        console.log(error);
-    })
+//             //create database update using INSERT INTO 
+//             var sqlUpdateTable = 
+//             `INSERT INTO parkinglots (CarparkID, Address, xcoord, ycoord) VALUES ( '${id}', '${address}', '${xCoord}', '${yCoord}')`;
+//             //console.log(sqlUpdateTable);
+//             con.query("USE mydb", function (err,result) {
+//                 if(err) throw err;
+//                 console.log("Using mydb");
+//             })
+//             con.query(sqlUpdateTable, function (err,result) {
+//                 if(err) throw err;
+//                 console.log("Record Inserted!");
+//             })
+//         }
+//         //carpark_no | address | x-coord | y-coord
+//     })
+//     .catch(error => {
+//         console.log(error);
+//     })
 
 //this is to get carpark number of lots available. with respect to the carparkID
 axios.get('https://api.data.gov.sg/v1/transport/carpark-availability')
     .then(response => {
+
+        //console.log(response.data.items[0].carpark_data);
         for(var i = 0; i < response.data.items[0].carpark_data.length; i++){
-            //console.log(response.data.items[0].carpark_data[i].carpark_info);
+            let carparkID = response.data.items[0].carpark_data[i].carpark_number;
+            let carparkAvailLots = response.data.items[0].carpark_data[i].carpark_info[0].lots_available;
+            let carparkTotalLots = response.data.items[0].carpark_data[i].carpark_info[0].total_lots;
+            
+            //now search db based on data
         }
+        //console.log(carparkID + " " + carparkLotsLeft + " " + carparkLotsTotal);
         // carpark_no (key) | carpark_info.total_lots | carpark_info.lots_available
     })
     .catch(error => {
