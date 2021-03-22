@@ -1,3 +1,5 @@
+//This page is purely for initialization of the DB. Use it once, thats all.
+
 const axios = require('axios');
 const mysql = require('mysql');
 
@@ -172,6 +174,13 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
     .catch(error => {
         console.log(error);
     })
+
+
+//TO-DO
+//CONVERT XCOORD AND YCOORD TO LAT LNG
+
+
+
 }
 /* 
 now to setup the database using carparkId as the key, and place them as:
