@@ -28,7 +28,6 @@ CREATE TABLE parkinglots (
 */
 
 function init(){
-
 /*
 BEFORE YOU START, DOWNLOAD MYSQL WORKBENCH AND PASTE THIS:
 
@@ -99,47 +98,22 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
     //Uses token to call for all carparks lists and rates
     .then( response => {
         //update your database here
-        con.query("USE mydb", function (err,result) {
-            if(err) throw err;
-            console.log("Using mydb");
-        })
+        //for(var i = 0; i < response.data.Result.length; i++){
+            // let carparkID = response.data.Result[i].carparkNo;
+            // let address = response.data.Result[i].geometries[0].coordinates; //gives a string, string split
+            // const [xcoord,ycoord] = address.split(',');
+            // let availableLots = response.data.Result[i].lotsAvailable;
 
-        for(var i = 0; i < response.data.Result.length; i++){
-            let carparkID = response.data.Result[i].carparkNo;
-            let address = response.data.Result[i].geometries[0].coordinates; //gives a string, string split
-            const [xcoord,ycoord] = address.split(',');
-            let availableLots = response.data.Result[i].lotsAvailable;
+            //console.log("CarparkID: " + carparkID + " xcoord: " + xcoord + " ycoord: " + ycoord + "total lots: " + availableLots);
 
-            //console.log("CarparkID: " + carparkID + " xcoord: " + xcoord + " ycoord: " + ycoord + "total lots: " + total_lots);
-
-            var sqlPopularURACarpark = 
-            `INSERT INTO parkinglots ('car_park_no', 'address', 'x_coord', 'y_coord', 'available_lots') VALUES ('${carparkID}', ${xcoord} , ${ycoord} , ${availableLots})`
+            // var sqlPopularURACarpark = 
+            // `INSERT INTO parkinglots(car_park_no, x_coord, y_coord, available_lots) VALUES ('${carparkID}', '${xcoord}' , '${ycoord}' , '${availableLots}')`
+            //updates URA parking data
             
-            con.query(sqlPopularURACarpark, function (err, result) {
-                if(err) throw err;
-                //console.log(carparkID + " updated");
-            })
-        }
-        /*
-        "weekdayMin": "30 mins",
-            "weekdayRate": "$0.60",
-            "ppCode": "A0004",              -> Carpark ID
-            "parkingSystem": "C",
-            "ppName": "ALIWAL STREET ",     -> Address
-            "vehCat": "Car",
-            "satdayMin": "30 mins",
-            "satdayRate": "$0.60",
-            "sunPHMin": "30 mins",
-            "sunPHRate": "$0.60",
-            "geometries": [
-                {
-                    "coordinates": "31045.6165,31694.0055" -> xcoord, ycoord
-                },
-            "startTime": "07.00 AM",
-            "parkCapacity": 112,            ->total_Lots
-            "endTime": "10.30 PM"
-        */
-
+            // con.query(sqlPopularURACarpark, function (err, result) {
+            //     if(err) throw err;
+            // })
+        //}
         //get list and rates
         return axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_Details', {
             headers: {
@@ -150,19 +124,50 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
     })
     .then(response => {
         //update your database here
+            con.query("USE mydb", function (err,result) {
+                if(err) throw err;
+                console.log("Using mydb");
+            })
+            //take out only vehicles=cars data
+            for(var i = 0; i < response.data.Result.length; i++){
+                let elementData = response.data.Result[i];
+                let vehicleType = elementData.vehCat;
+                if(vehicleType === 'Car'){
+                    let carparkID = elementData.ppCode;
+                    let address = elementData.ppName;
 
-        /*
-         "carparkNo": "S0049",
-            "geometries": [
-                {
-                    "coordinates": "30812.1957,33019.1062"
+                    let weekdayRatePre = elementData.weekdayRate;
+                    let weekdayRate = weekdayRatePre.substring(1);
+                    console.log("weekdayRatePre: " + weekdayRatePre);
+
+                    let satRatePre = elementData.satdayRate;
+                    let satRate = satRatePre.substring(1);
+                    console.log("satRatePre: " + satRatePre);
+
+                    let sunRatePre = elementData.sunPHRate;
+                    let sunRate = sunRatePre.substring(1);
+                    console.log("sunRatePre: " + sunRatePre);
+
+                    let location = elementData.geometries[0].coordinates;
+                    const [xcoord, ycoord] = location.split(',');
+                    let total_lots = elementData.parkCapacity;
+
+                    var sqlUpdateQuery = 
+                    `INSERT INTO parkinglots (car_park_no, address, x_coord, y_coord, total_lots, rate, satRate, sunRate, parking_lot_type) VALUE ('${carparkID}', '${address}', '${xcoord}', '${ycoord}', '${total_lots}', '${weekdayRate}', '${satRate}', '${sunRate}', 'URA')`
+
+                    con.query(sqlUpdateQuery, function (err, result) {
+                        if(err) throw err;
+                    })
                 }
-            ],
-            "lotsAvailable": "111",         -> available_lots
-            "lotType": "C"
-        */
+                else{
+                    continue;
+                }
+            }
+            
 
-        //console.log(response.data.Result);
+        // for(var i = 0; i < response.data.Result.length; i++){
+
+        // }
     })
     .catch(error => {
         console.log(error);
