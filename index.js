@@ -1,5 +1,6 @@
 //This page is purely for initialization of the DB. Use it once, thats all.
 
+const svy21 = require('./conversion.js');
 const axios = require('axios');
 const mysql = require('mysql');
 
@@ -126,50 +127,43 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
     })
     .then(response => {
         //update your database here
-            con.query("USE mydb", function (err,result) {
-                if(err) throw err;
-                console.log("Using mydb");
-            })
-            //take out only vehicles=cars data
-            for(var i = 0; i < response.data.Result.length; i++){
-                let elementData = response.data.Result[i];
-                let vehicleType = elementData.vehCat;
-                if(vehicleType === 'Car'){
-                    let carparkID = elementData.ppCode;
-                    let address = elementData.ppName;
-
-                    let weekdayRatePre = elementData.weekdayRate;
-                    let weekdayRate = weekdayRatePre.substring(1);
-                    console.log("weekdayRatePre: " + weekdayRatePre);
-
-                    let satRatePre = elementData.satdayRate;
-                    let satRate = satRatePre.substring(1);
-                    console.log("satRatePre: " + satRatePre);
-
-                    let sunRatePre = elementData.sunPHRate;
-                    let sunRate = sunRatePre.substring(1);
-                    console.log("sunRatePre: " + sunRatePre);
-
-                    let location = elementData.geometries[0].coordinates;
-                    const [xcoord, ycoord] = location.split(',');
-                    let total_lots = elementData.parkCapacity;
-
-                    var sqlUpdateQuery = 
-                    `INSERT INTO parkinglots (car_park_no, address, x_coord, y_coord, total_lots, rate, satRate, sunRate, parking_lot_type) VALUE ('${carparkID}', '${address}', '${xcoord}', '${ycoord}', '${total_lots}', '${weekdayRate}', '${satRate}', '${sunRate}', 'URA')`
-
-                    con.query(sqlUpdateQuery, function (err, result) {
-                        if(err) throw err;
-                    })
-                }
-                else{
-                    continue;
-                }
-            }
             
+            //take out only vehicles=cars data
+            // for(var i = 0; i < response.data.Result.length; i++){
+            //     let elementData = response.data.Result[i];
+            //     let vehicleType = elementData.vehCat;
+            //     if(vehicleType === 'Car'){
+            //         let carparkID = elementData.ppCode;
+            //         let address = elementData.ppName;
 
-        // for(var i = 0; i < response.data.Result.length; i++){
+            //         let weekdayRatePre = elementData.weekdayRate;
+            //         let weekdayRate = weekdayRatePre.substring(1);
+            //         console.log("weekdayRatePre: " + weekdayRatePre);
 
-        // }
+            //         let satRatePre = elementData.satdayRate;
+            //         let satRate = satRatePre.substring(1);
+            //         console.log("satRatePre: " + satRatePre);
+
+            //         let sunRatePre = elementData.sunPHRate;
+            //         let sunRate = sunRatePre.substring(1);
+            //         console.log("sunRatePre: " + sunRatePre);
+
+            //         let location = elementData.geometries[0].coordinates;
+            //         const [xcoord, ycoord] = location.split(',');
+            //         let total_lots = elementData.parkCapacity;
+
+            //         var sqlUpdateQuery = 
+            //         `INSERT INTO parkinglots (car_park_no, address, x_coord, y_coord, total_lots, rate, satRate, sunRate, parking_lot_type) VALUE ('${carparkID}', '${address}', '${xcoord}', '${ycoord}', '${total_lots}', '${weekdayRate}', '${satRate}', '${sunRate}', 'URA')`
+
+            //         con.query(sqlUpdateQuery, function (err, result) {
+            //             if(err) throw err;
+            //         })
+                // }
+                // else{
+                //     continue;
+                // }
+            //}
+            
     })
     .catch(error => {
         console.log(error);
@@ -182,12 +176,46 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
 
 
 }
-/* 
-now to setup the database using carparkId as the key, and place them as:
-carparkId | carpark address | lat | long | total lots |available lots left 
+
+//TO-DO: Set HDB Parking Rates to 0.6 or 1.2 based on location, and check timing for those 1.2 if its past 5. easier to
+//hard code than set it in db.
+//URA rates dont touch, add a column which states the timings.
+
+/*
+it is seen that URA usually has data from 7am - 10:30pm (0.6)... and 10:30pm to 7am data... where the latter is capped at $5
 */
 
+//init();
+
+//var test = new svy21();
+
+//var result = test.computeLatLon(31490.4942,30314.7936);
+var selectAll = 'SELECT x_coord, y_coord FROM parkinglots';
+//take northing easting data, create new column and convert into lat long
+
+con.query("USE mydb", function (err,result) {
+    if(err) throw err;
+    console.log("Using mydb");
+})
+
+con.query(selectAll, function(error, results, fields) {
+    if(error) {
+        console.log(error);
+        return;
+    }
+    var rows = JSON.parse(JSON.stringify(results));
+    var test = new svy21();
+
+    //HDB: Y first, then X (ACB) console.log(test.computeLatLon(31490.4942,30314.7936));
 
 
-init();
+    for(var i = 0; i < rows.length; i++){
+        var northing = rows[i].x_coord;
+        var easting = rows[i].y_coord;
+        var location1 = test.computeLatLon(northing,easting);
+        
+        console.log(location1);
+    }
+});
 
+// here it will be undefined

@@ -163,11 +163,16 @@ var SVY21 = (function(){
 		};
 
 });
-var test = new Object();
 
-test.initialise = SVY21;
 
-test.initialise()
+
+// var converter = new Object();
+
+// converter.initialise = SVY21;
+
+// converter.initialise();
+
+module.exports = SVY21;
 
 // HDB: Y first, then X (ACB) console.log(test.computeLatLon(31490.4942,30314.7936));
 
