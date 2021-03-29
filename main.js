@@ -92,7 +92,41 @@ function updateLots(){
         })
 
     //update URA carparks
-    axios.get()
+    var token = "";
+    axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
+        headers: {
+            AccessKey: 'bafa6ff4-883d-4db0-9a12-494053267254'
+        }
+        })
+        .then(response => {
+            token = response.data.Result;
+            //get carpark_details
+            return axios.get('https://www.ura.gov.sg/uraDataService/invokeUraDS?service=Car_Park_Availability', {
+                headers: {
+                    AccessKey: 'bafa6ff4-883d-4db0-9a12-494053267254',
+                    Token: token
+                }
+            })
+            .then(response => {
+
+                for(var i = 0; i < response.data.Result.length; i++){
+
+                    let carparkid = response.data.Result[i].carparkNo;
+                    let availableCarpark = response.data.Result[i].lotsAvailable;
+
+                    console.log("carparkID: " + carparkid + " avail: " + availableCarpark);
+                    var updateURAparking = 
+                    `UPDATE parkinglots SET available_lots='${availableCarpark}' WHERE car_park_no='${carparkid}'`
+
+                    con.query(updateURAparking, function(error, result){
+                        if (error) throw error;
+                    })
+                } //end loop
+            })
+            .catch( error => {
+                console.log(error);
+            })
+        })
 }
 
 updateLots();
