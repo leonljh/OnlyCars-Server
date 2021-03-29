@@ -66,7 +66,7 @@ BEFORE YOU START, DOWNLOAD MYSQL WORKBENCH AND PASTE THIS:
 //             //some parkinglotID not available
 //             count++;
 //             var sqlAddAvailableLots = 
-//             `UPDATE parkinglots SET available_lots='${carparkAvailLots}', total_lots='${carparkTotalLots}' WHERE car_park_no='${carparkID}'`;
+//             `UPDATE parkinglots SET available_lots='${carparkAvailLots}', total_lots='${carparkTotalLots}' WHERE         car_park_no='${carparkID}'`;
 
 //             con.query(sqlAddAvailableLots, function (err, result) {
 //                 if(err) throw err;
@@ -190,7 +190,7 @@ it is seen that URA usually has data from 7am - 10:30pm (0.6)... and 10:30pm to 
 //var test = new svy21();
 
 //var result = test.computeLatLon(31490.4942,30314.7936);
-var selectAll = 'SELECT x_coord, y_coord FROM parkinglots';
+var selectAll = 'SELECT x_coord, y_coord, car_park_no FROM parkinglots';
 //take northing easting data, create new column and convert into lat long
 
 con.query("USE mydb", function (err,result) {
@@ -204,18 +204,27 @@ con.query(selectAll, function(error, results, fields) {
         return;
     }
     var rows = JSON.parse(JSON.stringify(results));
+    console.log(rows);
     var test = new svy21();
 
     //HDB: Y first, then X (ACB) console.log(test.computeLatLon(31490.4942,30314.7936));
 
+    // for(var i = 0; i < rows.length; i++){
+    //     var northing = rows[i].x_coord;
+    //     var easting = rows[i].y_coord;
+    //     var carparkNo = rows[i].car_park_no;
+    //     var location1 = test.computeLatLon(northing,easting);
+    //     var lat = location1.lat;
+    //     var long = location1.lon;
 
-    for(var i = 0; i < rows.length; i++){
-        var northing = rows[i].x_coord;
-        var easting = rows[i].y_coord;
-        var location1 = test.computeLatLon(northing,easting);
-        
-        console.log(location1);
-    }
+    //     var sqlQuery = 
+    //     `UPDATE parkinglots SET latitude='${lat}', longitude='${long}' WHERE car_park_no='${carparkNo}'`
+ 
+    //     con.query(sqlQuery, function (error, result){
+    //         if(error) throw error;
+    //         console.log(result);
+    //     })
+    // }
 });
 
 // here it will be undefined
