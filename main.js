@@ -1,26 +1,24 @@
-//Link this up with React
-//Connect database to this main page
-//Use axios to call and update the API.
 const mysql = require('mysql');
 const geolib = require('geolib');
 const { default: axios } = require('axios');
+const express = require('express');
+const bodyParser = require('body-parser');
+const port = 3000;
 
-//Take input from Google Maps API and get the lat long of user selected
-// var express = require('express'),
-//   app = express(),
-//   port = process.env.PORT || 3000;
 
-// app.listen(port);
-// console.log("REST API Server started");
+/*
+TO DO: Create APIs using MySQL, test using postman.
+*/
 
-// console.log('todo list RESTful API server started on: ' + port);
-
+const app = express();
+//create mysql object
 const con = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "12345678"
 });
 
+//connect to db
 con.connect((err) => {
     if(err){
         console.log("Error connecting to DB");
@@ -38,32 +36,31 @@ var selectAllLatLng =
 "SELECT * FROM parkinglots";
 
 //connect to db
-con.query('USE mydb', function (err,result){
-    if(err) throw err;
-    console.log("Database Connection Established");
-})
+// con.query('USE mydb', function (err,result){
+//     if(err) throw err;
+//     console.log("Database Connection Established");
+// })
 
 //query
-con.query(selectAllLatLng, function (err,result){
-    if(err) throw err;
+// con.query(selectAllLatLng, function (err,result){
+//     if(err) throw err;
 
-    var rows = JSON.parse(JSON.stringify(result));
-    //console.log(rows);
-    var distances = [];
-    for(var i = 0; i < rows.length; i++){
+//     var rows = JSON.parse(JSON.stringify(result));
+//     //console.log(rows);
+//     var distances = [];
+//     for(var i = 0; i < rows.length; i++){
 
-        var lat = rows[i].latitude;
-        var lng = rows[i].longitude;
+//         var lat = rows[i].latitude;
+//         var lng = rows[i].longitude;
 
-        var distance = geolib.getDistance(
-            { latitude: 1.3836286, longitude: 103.738781},
-            { latitude: lat, longitude: lng},
-            10
-        )
-        
-        distances.push(distance);
-     } //end loop
-})
+//         var distance = geolib.getDistance(
+//             { latitude: 1.3836286, longitude: 103.738781},
+//             { latitude: lat, longitude: lng},
+//             10
+//         )
+//         distances.push(distance);
+//      } //end loop
+// })
 
 function updateLots(){
     //this function updates the database to the most recent data from URA and HDB
@@ -129,4 +126,17 @@ function updateLots(){
         })
 }
 
-updateLots();
+app.use(bodyParser.json());
+app.use(
+    bodyParser.urlencoded({
+        extended: true,
+    })
+);
+
+app.get('/', (req,res) => {
+    res.json({'message': 'ok' });
+});
+
+app.listen( port, () => {
+    console.log(`Example app listening in at http://localhost:${port}`);
+})
