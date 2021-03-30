@@ -1,66 +1,74 @@
-const mysql = require('mysql');
+const con = require('../database.js');
 const geolib = require('geolib');
-const { default: axios } = require('axios');
-const express = require('express');
-const bodyParser = require('body-parser');
-const port = 3000;
+const axios = require('axios');
 
+//constructor
+const Carpark = function(carpark) {
+    this.car_park_no = carpark.car_park_no;
+    this.address = carpark.address;
+    this.parking_lot_type = carpark.parking_lot_type;
+    this.latitude = carpark.latitude;
+    this.longitude = carpark.longitude;
+    this.total_lots = carpark.total_lots;
+    this.available_lots = carpark.available_lots;
+    this.rate = carpark.rate
+    this.satRate = carpark.satRate;
+    this.sunRate = carpark.sunRate;
+}
 
-/*
-TO DO: Create APIs using MySQL, test using postman.
-*/
+//we need find closest
+//then sort by rate on react side
 
-const app = express();
-//create mysql object
-const con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "12345678"
-});
+Carpark.getClosest = (currLat, currLong, res) => {
+    let closestDistanceQuery =
+    'SELECT DISTINCT car_park_no, address, latitude, longitude, parking_lot_type, available_lots, total_lots, rate, satRate, sunRate FROM parkinglots;'
+    con.query('USE mydb', (err, result) => {
+        if(err) throw err;
+    })
+    updateLots();
+    con.query(closestDistanceQuery, (err, result) => {
+        if(err) {
+            console.log("error: ", err);
+            res(null,err);
+            return;
+        }
 
-//connect to db
-con.connect((err) => {
-    if(err){
-        console.log("Error connecting to DB");
-        return;
-    }
-    console.log("Database Connection Established");
-})
+        var allCarparkDistances = [];
+        var rows = JSON.parse(JSON.stringify(result));
 
-//Distance calculation:
-//get destination location
-//compare every value with every parkinglot in database
-//get data at closest distance
+        for(var i = 0; i < rows.length; i++){
+            var lat = rows[i].latitude;
+            var lng = rows[i].longitude;
+            
+            var distanceResult = geolib.getDistance(
+                { latitude: currLat, longitude: currLong},
+                { latitude: lat, longitude: lng}
+                , 10)
 
-var selectAllLatLng = 
-"SELECT * FROM parkinglots";
+            var element = {
+                car_park_no: rows[i].car_park_no,
+                address: rows[i].address,
+                parking_lot_type: rows[i].parking_lot_type,
+                available_lots: rows[i].available_lots,
+                rate:  rows[i].rate,
+                satRate: rows[i].satRate,
+                sunRate: rows[i].sunRate,
+                lat: rows[i].latitude,
+                lng: rows[i].longitude,
+                distance: distanceResult
+            }
+            
+            //use an array to store all the values, then sort by
+            allCarparkDistances.push(element);
+        } //end loop
 
-//connect to db
-// con.query('USE mydb', function (err,result){
-//     if(err) throw err;
-//     console.log("Database Connection Established");
-// })
+        allCarparkDistances.sort(function(a,b) {
+            return a.distance - b.distance;
+        })
 
-//query
-// con.query(selectAllLatLng, function (err,result){
-//     if(err) throw err;
-
-//     var rows = JSON.parse(JSON.stringify(result));
-//     //console.log(rows);
-//     var distances = [];
-//     for(var i = 0; i < rows.length; i++){
-
-//         var lat = rows[i].latitude;
-//         var lng = rows[i].longitude;
-
-//         var distance = geolib.getDistance(
-//             { latitude: 1.3836286, longitude: 103.738781},
-//             { latitude: lat, longitude: lng},
-//             10
-//         )
-//         distances.push(distance);
-//      } //end loop
-// })
+        res(null, allCarparkDistances);
+    })
+}
 
 function updateLots(){
     //this function updates the database to the most recent data from URA and HDB
@@ -126,17 +134,4 @@ function updateLots(){
         })
 }
 
-app.use(bodyParser.json());
-app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
-);
-
-app.get('/', (req,res) => {
-    res.json({'message': 'ok' });
-});
-
-app.listen( port, () => {
-    console.log(`Example app listening in at http://localhost:${port}`);
-})
+module.exports = Carpark;
