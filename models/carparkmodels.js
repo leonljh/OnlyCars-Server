@@ -43,7 +43,7 @@ Carpark.getClosest = (currLat, currLong, res) => {
             var distanceResult = geolib.getDistance(
                 { latitude: currLat, longitude: currLong},
                 { latitude: lat, longitude: lng}
-                , 10)
+                , 1)
 
             var element = {
                 car_park_no: rows[i].car_park_no,
@@ -53,20 +53,24 @@ Carpark.getClosest = (currLat, currLong, res) => {
                 rate:  rows[i].rate,
                 satRate: rows[i].satRate,
                 sunRate: rows[i].sunRate,
-                lat: rows[i].latitude,
-                lng: rows[i].longitude,
+                location:{
+                    lat: rows[i].latitude,
+                    lng: rows[i].longitude
+                },
                 distance: distanceResult
             }
-            
             //use an array to store all the values, then sort by
             allCarparkDistances.push(element);
         } //end loop
 
+        console.log("previous " + allCarparkDistances);
         allCarparkDistances.sort(function(a,b) {
             return a.distance - b.distance;
         })
+        var results20 = allCarparkDistances.slice(0,20);
 
-        res(null, allCarparkDistances);
+        //console.log("final: " + allCarparkDistances);
+        res(null, results20);
     })
 }
 
@@ -90,7 +94,6 @@ function updateLots(){
                     count++;
                 })
             }//end loop
-            console.log(count + " entries updated");
         })
         .catch(error => {
             console.log(error);

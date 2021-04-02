@@ -13,6 +13,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to my REST API application." });
 });
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 require("./routes/parkinglot.routes.js")(app);
 
 // set port, listen for requests
