@@ -19,17 +19,6 @@ con.connect((err) => {
     console.log("Database Connection Established");
 })
 
-/*Create Table using this query in the GUI, otherwise just put this in a query
-
-CREATE TABLE parkinglots (
-	CarparkID varchar(255),
-    Address   varchar(255),
-    xcoord	  float,
-    ycoord	  float
-    )
-
-*/
-
 function init(){
 /*
 BEFORE YOU START, DOWNLOAD MYSQL WORKBENCH AND PASTE THIS:
@@ -173,8 +162,6 @@ axios.get('https://www.ura.gov.sg/uraDataService/insertNewToken.action', {
 //TO-DO
 //CONVERT XCOORD AND YCOORD TO LAT LNG
 
-
-
 }
 
 //TO-DO: Set HDB Parking Rates to 0.6 or 1.2 based on location, and check timing for those 1.2 if its past 5. easier to
@@ -209,22 +196,23 @@ con.query(selectAll, function(error, results, fields) {
 
     //HDB: Y first, then X (ACB) console.log(test.computeLatLon(31490.4942,30314.7936));
 
-    // for(var i = 0; i < rows.length; i++){
-    //     var northing = rows[i].x_coord;
-    //     var easting = rows[i].y_coord;
-    //     var carparkNo = rows[i].car_park_no;
-    //     var location1 = test.computeLatLon(northing,easting);
-    //     var lat = location1.lat;
-    //     var long = location1.lon;
+    for(var i = 0; i < rows.length; i++){
 
-    //     var sqlQuery = 
-    //     `UPDATE parkinglots SET latitude='${lat}', longitude='${long}' WHERE car_park_no='${carparkNo}'`
+        var northing = rows[i].x_coord;
+        var easting = rows[i].y_coord;
+        var carparkNo = rows[i].car_park_no;
+        var location1 = test.computeLatLon(easting,northing);
+        var lat = location1.lat;
+        var long = location1.lon;
+
+        var sqlQuery = 
+        `UPDATE parkinglots SET latitude='${lat}', longitude='${long}' WHERE car_park_no='${carparkNo}'`
  
-    //     con.query(sqlQuery, function (error, result){
-    //         if(error) throw error;
-    //         console.log(result);
-    //     })
-    // }
+        con.query(sqlQuery, function (error, result){
+            if(error) throw error;
+            console.log(result);
+        })
+    }
 });
 
 // here it will be undefined
